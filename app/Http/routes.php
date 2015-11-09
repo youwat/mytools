@@ -11,4 +11,11 @@
 |
 */
 
-Route::get('/', 'helloController@goodmorning');
+//Route::get('/', 'helloController@goodmorning');
+//Route::get('/', 'PagesController@index');
+
+//Route::get('/hello', 'HelloController@index');
+
+Route::get('/child', function(){
+    return view('child');
+});
