@@ -7,7 +7,6 @@
     <div class="container">
         @yield('content')
     </div>
-
     @include('js.master')
 </body>
 </html>

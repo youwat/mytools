@@ -16,6 +16,8 @@
 
 //Route::get('/hello', 'HelloController@index');
 
+
+Route::get('/', 'TopController@index');
 Route::get('/child', function(){
     return view('child');
 });
