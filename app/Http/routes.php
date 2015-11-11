@@ -18,3 +18,4 @@
 
 
 Route::get('/', 'TopController@index');
+Route::get('/switchdebugmode', 'TopController@switchDebug');
