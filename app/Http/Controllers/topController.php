@@ -2,109 +2,67 @@
 
 namespace App\Http\Controllers;
 
+use App\PhpInfomation;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
+use App\Dao\LogData;
+use App\Common;
+use App\Git;
 
 class TopController extends Controller
 {
-    // 自動更新頻度(単位:分)
-    const AUTO_UPDATE_INTERVAL_TIME = 5;
+    // デバッグモードスイッチ用 自動リダイレクト時間(単位:秒)
+    const AUTO_REDIRECT_INTERVAL_TIME = 5;
+    // 自動更新頻度(単位:秒)
+    const AUTO_UPDATE_INTERVAL_TIME = 150;
+    const TAB_DASH_BOARD_NUMBER = 1;
+    const TAB_LOG_NUMBER = 2;
+
+    public function __construct()
+    {
+    }
 
     /**
-     * Display a listing of the resource.
+     * Tool Top
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function indexAction()
     {
+        // Git情報取得クラス
+        $git = new Git("/home/watanabe/AMS_GIT");
+
+        // Tab1 -----------------------------------------------------
         // デバッグモード取得
-        $data['x_debug'] = $this->isxDebugMode();
+        $data['x_debug'] = PhpInfomation::isxDebugMode();
         // 現在のブランチ名の取得
-        $data['branch_name'] = $this->getBranchName();
-        $this->trim($data['branch_name']);
+        $data['branch_name'] = $git->getBranchName();
         // ローカルブランチ一覧取得
-        $data['local_branch_list'] = $this->getBranchList(true);
-        $this->trim($data['local_branch_list']);
+        $data['local_branch_list'] = $git->getBranchList(true);
         // リモートブランチ一覧取得
-        $data['remote_branch_list'] = $this->getBranchList(false);
-        $this->trim($data['remote_branch_list']);
+        $data['remote_branch_list'] = $git->getBranchList(false);
+        // デフォルト選択タブ
+        $data['default_tab_number'] = self::TAB_DASH_BOARD_NUMBER;
+
+        // Tab2 -----------------------------------------------------
+        // 100件までログをデータベースから取得
+
+
+
+        // 現在時刻
+        $data['now'] = Common::getDateString();
 
         return view('top', $data);
     }
 
-    public function switchDebug()
+    public function switchDebugAction()
     {
+        $auto_redirect_interval_time = \Config::get('mytools.auto_redirect_interval_time');
+
         $cmd = "sudo switchdebugmode.sh";
-        $data = array('wait' => self::AUTO_UPDATE_INTERVAL_TIME);
+        $data = array('wait' => $auto_redirect_interval_time);
         shell_exec($cmd);
         return view('switchdebug', $data);
-    }
-
-    /**
-     * xDebugが有効か
-     * @return bool 有効(true)/無効(false)
-     */
-    protected function isxDebugMode()
-    {
-        return empty(shell_exec('php -i |grep "debug support"'))?false:true;
-    }
-
-    /**
-     * 現在のブランチ名を取得する
-     * @return mixed|string ブランチ名
-     */
-    protected function getBranchName()
-    {
-        $ret = shell_exec("cd /home/watanabe/AMS_GIT;git status|head -1;");
-        $ret = str_replace('On branch ', '', $ret);
-
-        return $ret;
-    }
-
-    /**
-     * ブランチリストを取得する
-     * @param $isLocal
-     * @return array
-     */
-    private function getBranchList($isLocal)
-    {
-        $ret = array();
-        if($isLocal) {
-            // ローカルブランチリストを取得
-            $cmd = "cd /home/watanabe/AMS_GIT;git branch";
-            $tmp = shell_exec($cmd);
-            $ret = explode("\n", $tmp);
-        }else {
-            // リモートブランチリストを取得
-            $cmd = "cd /home/watanabe/AMS_GIT;git branch -a";
-            $tmp = shell_exec($cmd);
-            $tmp = explode("\n", $tmp);
-            $ret = $tmp;
-            foreach($tmp as $k => $v) {
-                if(strpos($v, 'remotes') === false) {
-                    unset($ret[$k]);
-                }
-            }
-        }
-
-        return $ret;
-    }
-
-    /**
-     * 余分な文字を除去
-     * @param $target 文字列or文字列配列
-     */
-    private function trim(&$target)
-    {
-        if(empty($target)) return;
-
-        if(is_array($target)) {
-            foreach($target as &$v) {
-                $v = trim($v);
-            }unset($v);
-        } else {
-            $target = trim($target);
-        }
     }
 }

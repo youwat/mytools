@@ -11,11 +11,7 @@
 |
 */
 
-//Route::get('/', 'helloController@goodmorning');
-//Route::get('/', 'PagesController@index');
 
-//Route::get('/hello', 'HelloController@index');
-
-
-Route::get('/', 'TopController@index');
-Route::get('/switchdebugmode', 'TopController@switchDebug');
+Route::get('/', 'TopController@indexAction');
+Route::get('/getlog', 'AjaxController@getLogAction');
+Route::get('/switchdebugmode', 'TopController@switchDebugAction');
